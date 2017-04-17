@@ -1,0 +1,38 @@
+mqtt:
+  client:
+    protocol: 4      # MQTTv311
+  connection:
+    host: localhost
+    port: 1883
+    keepalive: 60
+  private_path: device/001
+serializer: msgpack:dumps
+deserializer: msgpack:loads
+bridge:
+  # ping pong
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: sensor_msgs.msg:Image
+    topic_from: /ardrone/image_raw
+    topic_to: mqttImageTopic
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: sensor_msgs.msg:Image
+    topic_from: mqttImageTopic
+    topic_to: /tum_ardrone/image
+  # echo back
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: ardrone_autonomy.msg:Navdata
+    topic_from: /ardrone/navdata
+    topic_to: mqttNavdataTopic
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: ardrone_autonomy.msg:Navdata
+    topic_from: mqttNavdataTopic
+    topic_to: /tum_ardrone/navdata
+  # private path
+  - factory: mqtt_bridge.bridge:RosToMqttBridge
+    msg_type: std_msgs.msg:String
+    topic_from: /private/echo
+    topic_to: ~/echo
+  - factory: mqtt_bridge.bridge:MqttToRosBridge
+    msg_type: std_msgs.msg:String
+    topic_from: ~/echo
+    topic_to: /private/back
